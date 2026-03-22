@@ -52,9 +52,10 @@ class Database:
                 temp_path.unlink()
             logging.error(f"Ошибка сохранения БД: {e}")
 
-    # --- Методы-помощники для удобства ---
+    # --- Методы для удобства ---
 
     def get_user(self, user_id):
+        """Возвращает данные пользователя, а если его нет в БД - то создает"""
         user_id = str(user_id)
         if user_id not in self.data["users"]:
             self.data["users"][user_id] = {
