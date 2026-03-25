@@ -2,7 +2,7 @@ import time
 import requests
 import logging
 import os
-
+from config import CRM_HOSTNAME, CRM_EMAIL, CRM_API_TOKEN
 logging.basicConfig(level=logging.INFO)
 
 class AlfaCRMClient:
@@ -163,3 +163,37 @@ class AlfaCRMClient:
             "teacher/index",
             self.map_filters(filters)
         )
+
+    def create_customer(self, student_name: str, parent_name: str, phone: str, legal_type: str):
+        """ Создает нового клиента в AlfaCRM """
+        self.ensure_token()
+
+        # Маппинг типов лица из текстовых кнопок бота в ID API
+        # 1 - физ. лицо, 2 - юр. лицо
+        legal_type_id = 1 if "физическое" in legal_type.lower() else 2
+
+        payload = {
+            "name": student_name,  # В AlfaCRM это поле 'Имя ученика'
+            "legal_name": parent_name,  # А это 'ФИО представителя'
+            "phone": [phone],
+            "legal_type": legal_type_id,
+            "is_study": 0,
+            "branch_ids": [self.branch],
+            "lead_source_id": 23
+        }
+
+        path = f"/v2api/{self.branch}/customer/create"
+
+        try:
+            response = self.request("POST", path, payload=payload)
+
+            if response and "model" in response:
+                logging.info(f"Клиент {parent_name} успешно создан в CRM с ID {response['model'].get('id')}")
+                return response["model"]
+            else:
+                logging.error(f"Ошибка структуры ответа CRM: {response}")
+                return None
+
+        except Exception as e:
+            logging.error(f"Критическая ошибка при создании клиента: {e}")
+            raise e
