@@ -178,7 +178,7 @@ class AlfaCRMClient:
             "phone": [phone],
             "legal_type": legal_type_id,    # Юридический статус
             "is_study": 0,                  # 0 - лид
-            "branch_ids": [self.branch],
+            "branch_ids": [self.branch],    # ID филиала
             "lead_source_id": 23            # ID источника лида - телеграм-бот
         }
 
