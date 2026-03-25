@@ -176,7 +176,7 @@ class AlfaCRMClient:
             "name": student_name,           # В AlfaCRM это поле 'Имя ученика'
             "legal_name": parent_name,      # А это 'ФИО представителя'
             "phone": [phone],
-            "legal_type": legal_type_id,    # Юридисеский статус
+            "legal_type": legal_type_id,    # Юридический статус
             "is_study": 0,                  # 0 - лид
             "branch_ids": [self.branch],
             "lead_source_id": 23            # ID источника лида - телеграм-бот
