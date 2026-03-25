@@ -173,13 +173,13 @@ class AlfaCRMClient:
         legal_type_id = 1 if "физическое" in legal_type.lower() else 2
 
         payload = {
-            "name": student_name,  # В AlfaCRM это поле 'Имя ученика'
-            "legal_name": parent_name,  # А это 'ФИО представителя'
+            "name": student_name,           # В AlfaCRM это поле 'Имя ученика'
+            "legal_name": parent_name,      # А это 'ФИО представителя'
             "phone": [phone],
-            "legal_type": legal_type_id,
-            "is_study": 0,
+            "legal_type": legal_type_id,    # Юридисеский статус
+            "is_study": 0,                  # 0 - лид
             "branch_ids": [self.branch],
-            "lead_source_id": 23
+            "lead_source_id": 23            # ID источника лида - телеграм-бот
         }
 
         path = f"/v2api/{self.branch}/customer/create"
