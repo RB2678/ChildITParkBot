@@ -16,7 +16,6 @@ crm = AlfaCRMClient(
 )
 
 # Инициализация бота с хранилищем состояний в памяти
-# (Для начала используем MemoryStorage, это проще всего)
 state_storage = StateMemoryStorage()
 bot = telebot.TeleBot(config.BOT_API_TOKEN, state_storage=state_storage)
 
