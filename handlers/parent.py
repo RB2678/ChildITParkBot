@@ -17,7 +17,9 @@ def register_parent_handlers(bot, db, crm):
             safe_send(bot, user_id, "К сожалению, без согласия регистрация невозможна. /start")
             bot.delete_state(user_id, message.chat.id)
         else:
-            safe_send(bot, user_id, "Пожалуйста, используйте кнопки.")
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+            markup.add("✅ Согласен", "❌ Не согласен")
+            safe_send(bot, user_id, "Пожалуйста, используйте кнопки.", reply_markup=markup)
 
     # 2. Обработка ФИО родителя
     @bot.message_handler(state=BotStates.entering_parent_name)
@@ -47,13 +49,20 @@ def register_parent_handlers(bot, db, crm):
         legal_type = message.text
 
         if legal_type not in ["Физическое лицо", "Юридическое лицо"]:
-            safe_send(bot, user_id, "Пожалуйста, выберите один из вариантов на кнопках.")
+            markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+            markup.add("Физическое лицо", "Юридическое лицо")
+            safe_send(bot,
+                      user_id,
+                      "Пожалуйста, выберите один из вариантов на кнопках.",
+                      reply_markup=markup
+            )
             return
 
         db.update_user(user_id, legal_type=legal_type)
 
         # Запрос контакта (номера телефона)
-        safe_send(bot, user_id,
+        safe_send(bot,
+                  user_id,
                   "Для завершения регистрации нам необходим ваш номер телефона. "
                   "Нажмите на кнопку ниже, чтобы отправить его.",
                   reply_markup=get_contact_keyboard())
@@ -74,7 +83,11 @@ def register_parent_handlers(bot, db, crm):
         try:
             formatted = format_phone(raw_phone)
         except ValueError:
-            safe_send(bot, user_id, "Ошибка в формате номера. Попробуйте еще раз или отправьте контакт кнопкой.")
+            safe_send(bot,
+                      user_id,
+                      "Ошибка в формате номера. Попробуйте еще раз или отправьте контакт кнопкой.",
+                      reply_markup=get_contact_keyboard()
+            )
             return
 
         safe_send(bot, user_id, "Проверяем ваши данные в базе ИТ-Парка...", reply_markup=types.ReplyKeyboardRemove())
