@@ -32,11 +32,14 @@ class AlfaCRMClient:
             "api_key": self.api_key
         })
 
-        resp.raise_for_status()
-        data = resp.json()
+        try:
+            resp.raise_for_status()
+            data = resp.json()
 
-        self.token = data["token"]
-        self.token_expires_at = time.time() + 3600
+            self.token = data["token"]
+            self.token_expires_at = time.time() + 3600
+        except requests.exceptions.HTTPError as e:
+            logging.error(f"Ошибка при авторизации в AlfaCRM: {e}")
 
     def ensure_token(self):
         if not self.token or time.time() >= self.token_expires_at:
