@@ -1,6 +1,6 @@
 import telebot
 from telebot import custom_filters
-from telebot.storage import StateMemoryStorage
+from telebot.storage import StatePickleStorage
 import config
 from storage import Database
 from crm import AlfaCRMClient
