@@ -8,7 +8,7 @@ class BotStates(StatesGroup):
     # Состояния для родителя
     accepting_privacy = State()     # Согласие на обработку персональных данных
     entering_parent_name = State()  # Это пойдет в legal_name
-    entering_student_name = State()  # Это пойдет в name
+    entering_student_name = State() # Это пойдет в name
     choosing_legal = State()        # Физ/Юр лицо
     sending_phone = State()         # Отправка контакта
     check_contract = State()        # Проверка наличия договора
