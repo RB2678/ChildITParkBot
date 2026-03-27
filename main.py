@@ -19,12 +19,13 @@ crm = AlfaCRMClient(
 state_storage = StatePickleStorage(file_path="./states/states.pkl")
 bot = telebot.TeleBot(config.BOT_API_TOKEN, state_storage=state_storage)
 
-# Регистрация функций в боте
-register_base_handlers(bot, db, crm)
-register_parent_handlers(bot, db, crm)
 # Добавление фильтров для работы состояний
 bot.add_custom_filter(custom_filters.StateFilter(bot))
 bot.add_custom_filter(custom_filters.TextMatchFilter())
+
+# Регистрация функций в боте
+register_base_handlers(bot, db, crm)
+register_parent_handlers(bot, db, crm)
 
 if __name__ == "__main__":
     print("Бот запущен...")
