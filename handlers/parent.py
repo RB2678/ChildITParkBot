@@ -9,11 +9,11 @@ def register_parent_handlers(bot, db, crm):
     def process_privacy(message):
         user_id = message.chat.id
 
-        if message.text == "✅ Согласен":
+        if "Согласен" in message.text and "Не" not in message.text:
             safe_send(bot, user_id, "Отлично! Введите ваше ФИО:",
                       reply_markup=types.ReplyKeyboardRemove())
             bot.set_state(user_id, BotStates.entering_parent_name, message.chat.id)
-        elif message.text == "❌ Не согласен":
+        elif "Не согласен" in message.text:
             safe_send(bot, user_id, "К сожалению, без согласия регистрация невозможна. /start")
             bot.delete_state(user_id, message.chat.id)
         else:
