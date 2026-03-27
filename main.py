@@ -16,7 +16,7 @@ crm = AlfaCRMClient(
 )
 
 # Инициализация бота с хранилищем состояний в памяти
-state_storage = StateMemoryStorage()
+state_storage = StatePickleStorage(file_path="./states/states.pkl")
 bot = telebot.TeleBot(config.BOT_API_TOKEN, state_storage=state_storage)
 
 # Регистрация функций в боте
