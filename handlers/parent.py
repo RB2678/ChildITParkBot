@@ -30,8 +30,8 @@ def register_parent_handlers(bot, db, crm):
         bot.set_state(user_id, BotStates.entering_student_name, message.chat.id)
 
     # 3. Обработка ФИО ученика
-    @bot.message_handler(state=BotStates.entering_parent_name)
-    def process_full_name(message):
+    @bot.message_handler(state=BotStates.entering_student_name)
+    def process_student_name(message):
         user_id = message.chat.id
         db.update_user(user_id, student_name=message.text)
 
