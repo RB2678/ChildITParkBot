@@ -1,6 +1,7 @@
 from telebot import types
 from states.states import BotStates
 from utils import safe_send, check_password
+from config import PRIVACY_POLITIC_URL
 
 def register_base_handlers(bot, db, crm):
     @bot.message_handler(commands=['start'])
@@ -25,13 +26,13 @@ def register_base_handlers(bot, db, crm):
             db.update_user(user_id, role="parent")
 
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-            markup.add("✅ Согласен", "❌ Не согласен")
+            markup.add("✅ Я ознакомлен(а) и согласен(-на)", "❌ Не согласен(-на)")
             # ЗДЕСЬ НУЖНО ВСТАВИТЬ ССЫЛКУ НА ДОКУМЕНТ
             text = (
                 "Для регистрации в базе ИТ-парка нам необходимо ваше согласие "
                 "на обработку персональных данных (ФЗ-№152).\n\n"
                 "Вы согласны продолжить?\n"
-                "Текст соглашения: ссылка"
+                f"Текст соглашения: {PRIVACY_POLITIC_URL}"
             )
 
             safe_send(bot, user_id, text, reply_markup=markup)
