@@ -1,6 +1,6 @@
 import telebot
-from telebot import custom_filters
-from telebot.storage import StatePickleStorage
+from telebot import custom_filters, StateMemoryStorage
+# from telebot.storage import StatePickleStorage
 import config
 from storage import Database
 from crm import AlfaCRMClient
@@ -16,7 +16,7 @@ crm = AlfaCRMClient(
 )
 
 # Инициализация бота с хранилищем состояний в памяти
-state_storage = StatePickleStorage(file_path="./states/states.pkl")
+state_storage = StateMemoryStorage()
 bot = telebot.TeleBot(config.BOT_API_TOKEN, state_storage=state_storage)
 
 # Добавление фильтров для работы состояний
