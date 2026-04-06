@@ -13,5 +13,14 @@ class BotStates(StatesGroup):
     sending_phone = State()         # Отправка контакта
     check_contract = State()        # Проверка наличия договора
 
+    # Состояния для ученика
+    entering_name = State()
+
+    # Состояния для администраторов
+    entering_admin_name = State()
+
+    # Состояния для преподавателей
+    entering_teacher_name = State()
+
     # Состояния для CRM/Договоров
     waiting_contract = State()      # Ожидание подписания договора
