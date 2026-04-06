@@ -6,6 +6,9 @@ from storage import Database
 from crm import AlfaCRMClient
 from handlers.base import register_base_handlers
 from handlers.parent import register_parent_handlers
+from handlers.student import register_student_handlers
+from handlers.admin import register_admin_handlers
+from handlers.teacher import register_teacher_handlers
 
 # Инициализация базы и CRM
 db = Database()
@@ -24,8 +27,11 @@ bot.add_custom_filter(custom_filters.StateFilter(bot))
 bot.add_custom_filter(custom_filters.TextMatchFilter())
 
 # Регистрация функций в боте
-register_base_handlers(bot, db, crm)
+register_base_handlers(bot, db)
 register_parent_handlers(bot, db, crm)
+register_student_handlers(bot, db, crm)
+register_admin_handlers(bot, db, crm)
+register_teacher_handlers(bot, db, crm)
 
 if __name__ == "__main__":
     print("Бот запущен...")
