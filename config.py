@@ -6,8 +6,8 @@ load_dotenv(".env")
 BOT_API_TOKEN = os.getenv("BOT_API_TOKEN")
 
 CRM_API_TOKEN = os.getenv("CRM_API_TOKEN")
-CRM_EMAIL = os.getenv("EMAIL")
-CRM_HOSTNAME = os.getenv("HOSTNAME")
+CRM_EMAIL = os.getenv("CRM_EMAIL")
+CRM_HOSTNAME = os.getenv("CRM_HOSTNAME")
 
 ADMIN_PW_DIGEST = os.getenv("ADMIN_PASSWORD")
 TEACHER_PW_DIGEST = os.getenv("TEACHER_PASSWORD")
