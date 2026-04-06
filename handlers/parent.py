@@ -1,3 +1,5 @@
+import logging
+
 from telebot import types
 from states.states import BotStates
 from utils import safe_send, get_contact_keyboard, format_phone
@@ -95,8 +97,9 @@ def register_parent_handlers(bot, db, crm):
         # Поиск в AlfaCRM (is_study=2 ищет по всем статусам)
         try:
             found_clients = crm.customers(phone=formatted, is_study=2)
-        except Exception:
+        except Exception as e:
             safe_send(bot, user_id, "Произошла ошибка при связи с сервером. Попробуйте позже.")
+            logging.error(f"Ошибка при поиске клиента в CRM: {e}")
             bot.delete_state(user_id, message.chat.id)
             return
 
