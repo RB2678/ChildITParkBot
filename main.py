@@ -9,6 +9,7 @@ from handlers.parent import register_parent_handlers
 from handlers.student import register_student_handlers
 from handlers.admin import register_admin_handlers
 from handlers.teacher import register_teacher_handlers
+from handlers.auth import register_all_auth_handlers
 
 # Инициализация базы и CRM
 db = Database()
@@ -32,6 +33,7 @@ register_parent_handlers(bot, db, crm)
 register_student_handlers(bot, db, crm)
 register_admin_handlers(bot, db, crm)
 register_teacher_handlers(bot, db, crm)
+register_all_auth_handlers(bot, db, crm)
 
 if __name__ == "__main__":
     print("Бот запущен...")
