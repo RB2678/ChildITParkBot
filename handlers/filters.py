@@ -17,7 +17,7 @@ class RoleFilter(AdvancedCustomFilter):
         if not user_data:
             return False
 
-        user_role = user_data.get('role')
+        user_role = user_data.get('role') if user_data else "unregistered"
 
         if isinstance(role, list):
             return user_role in role
