@@ -3,7 +3,7 @@ from states.states import BotStates
 from utils import safe_send, check_password
 from config import PRIVACY_POLITIC_URL
 
-def register_base_handlers(bot, db, crm):
+def register_base_handlers(bot, db):
     @bot.message_handler(commands=['start'])
     def cmd_start(message):
         user_id = message.chat.id
@@ -27,7 +27,7 @@ def register_base_handlers(bot, db, crm):
 
             markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
             markup.add("✅ Я ознакомлен(а) и согласен(-на)", "❌ Не согласен(-на)")
-            # ЗДЕСЬ НУЖНО ВСТАВИТЬ ССЫЛКУ НА ДОКУМЕНТ
+
             text = (
                 "Для регистрации в базе ИТ-парка нам необходимо ваше согласие "
                 "на обработку персональных данных (ФЗ-№152).\n\n"
@@ -42,8 +42,8 @@ def register_base_handlers(bot, db, crm):
             db.update_user(user_id, role="student")
             safe_send(bot, user_id, "Привет, будущий айтишник! Введи свое имя:",
                       reply_markup=types.ReplyKeyboardRemove())
-            # Здесь будет переход в состояние для ученика
-            # bot.set_state(user_id, BotStates.entering_student_name, message.chat.id)
+
+            bot.set_state(user_id, BotStates.entering_name, message.chat.id)
 
         # 2. Скрытые роли
         elif text in ["админ", "администратор", "admin"]:
@@ -64,8 +64,14 @@ def register_base_handlers(bot, db, crm):
         if check_password(pending_role, message.text):
             db.update_user(user_id, role=pending_role, pending_role=None)
             safe_send(bot, user_id, f"✅ Доступ разрешен. Роль {pending_role} активирована.")
-            bot.delete_state(user_id, message.chat.id)
-            # Здесь вызываем стартовое меню админа или учителя
+
+            match pending_role:
+                case "admin":
+                    bot.set_state(user_id, BotStates.entering_admin_name, message.chat.id)
+                case "teacher":
+                    bot.set_state(user_id, BotStates.entering_teacher_name, message.chat.id)
+
+            safe_send(bot, user_id, "Введите свое ФИО:")
         else:
             safe_send(bot, user_id, "❌ Неверный пароль. Попробуйте еще раз или выберите роль на кнопках:")
             # Можно вернуть его к выбору ролей
