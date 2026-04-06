@@ -4,7 +4,7 @@ from utils import safe_send, check_password
 from config import PRIVACY_POLITIC_URL
 
 def register_base_handlers(bot, db):
-    @bot.message_handler(commands=['start'])
+    @bot.message_handler(commands=['start'], role="unregistered")
     def cmd_start(message):
         user_id = message.chat.id
         # Очистка состояния при старте
