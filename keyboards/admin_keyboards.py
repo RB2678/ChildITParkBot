@@ -23,6 +23,7 @@ def broadcast_roles_kb():
         InlineKeyboardButton(text=name, callback_data=cb)
         for name, cb in roles.items()
     ]
+    buttons.append(InlineKeyboardButton(text="⬅️Назад", callback_data="back_to_menu"))
     keyboard.add(*buttons)
 
     return keyboard
