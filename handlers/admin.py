@@ -3,7 +3,7 @@ from utils import safe_send
 
 def register_admin_handlers(bot, db, crm):
     # ----- Админ-панель -----
-    @bot.message_handler(commands=["admin"], role="admin")
+    @bot.message_handler(commands=["admin", "start"], role="admin")
     def admin_start(message):
         user_id = message.chat.id
         safe_send(bot, user_id, f"Добро пожаловать в панель управления", reply_markup=admin_menu_kb())
@@ -12,4 +12,5 @@ def register_admin_handlers(bot, db, crm):
     @bot.callback_query_handler(func=lambda call: call.data == "start_broadcast", role="admin")
     def start_broadcast(call):
         user_id = call.message.chat.id
-        safe_send(bot, user_id, "Выберите для кого запустить рассылку:", reply_markup=broadcast_roles_kb())
+        bot.edit_message_text(chat_id=user_id, message_id=call.message.message_id, text="Выберите для кого запустить рассылку:", reply_markup=broadcast_roles_kb())
+        #safe_send(bot, user_id, "Выберите для кого запустить рассылку:", reply_markup=broadcast_roles_kb())
