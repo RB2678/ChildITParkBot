@@ -18,6 +18,8 @@ class BotStates(StatesGroup):
 
     # Состояния для администраторов
     entering_admin_name = State()
+    processing_broadcast = State()
+    confirming_broadcast = State()
 
     # Состояния для преподавателей
     entering_teacher_name = State()
