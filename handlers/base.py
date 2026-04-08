@@ -19,7 +19,7 @@ def register_base_handlers(bot, db):
     @bot.message_handler(state=BotStates.choosing_role)
     def handle_role_choice(message):
         user_id = message.chat.id
-        text = message.text.lower()
+        text = message.text.strip().lower()
 
         # 1. Открытые роли
         if text == "родитель":
@@ -70,6 +70,9 @@ def register_base_handlers(bot, db):
                     bot.set_state(user_id, BotStates.entering_admin_name, message.chat.id)
                 case "teacher":
                     bot.set_state(user_id, BotStates.entering_teacher_name, message.chat.id)
+                case _:
+                    safe_send(bot, user_id, "Ошибка определения роли.")
+                    return
 
             safe_send(bot, user_id, "Введите свое ФИО:")
         else:
