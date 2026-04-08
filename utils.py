@@ -47,6 +47,21 @@ def safe_send(bot, chat_id, text, **kwargs):
         logging.error(f"Неожиданная ошибка при отправке в чат {chat_id}: {e}")
     return None
 
+def safe_edit(bot, chat_id, message_id, text, **kwargs):
+    """Безопасное редактирование сообщения с отловом ошибок API Telegram"""
+    try:
+        return bot.edit_message_text(
+            chat_id=chat_id,
+            message_id=message_id,
+            text=text,
+            **kwargs
+        )
+    except ApiTelegramException as e:
+        logging.error(f"Ошибка Telegram API при редактировании сообщения: {e}")
+    except Exception as e:
+        logging.error(f"Неожиданная ошибка при редактировании сообщения: {e}")
+    return None
+
 def safe_delete(bot, chat_id, message_id):
     """Безопасное удаление сообщения (не роняет бота, если сообщение уже удалено пользователем)"""
     try:
