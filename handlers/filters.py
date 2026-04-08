@@ -14,10 +14,11 @@ class RoleFilter(AdvancedCustomFilter):
         user_id = message.from_user.id
         user_data = self.db.get_user(user_id)
 
+        # Если пользователя нет, назначаем метку
         if not user_data:
-            return False
-
-        user_role = user_data.get('role') if user_data else "unregistered"
+            user_role = "unregistered"
+        else:
+            user_role = user_data.get('role', "unregistered")
 
         if isinstance(role, list):
             return user_role in role
