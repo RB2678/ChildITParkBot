@@ -27,3 +27,12 @@ def broadcast_roles_kb():
     keyboard.add(*buttons)
 
     return keyboard
+
+def broadcast_confirming_kb():
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(
+        InlineKeyboardButton(text="подтвердить", callback_data="confirm_broadcast"),
+        InlineKeyboardButton(text="⬅️Назад", callback_data="back_to_text")
+    )
+
+    return keyboard
