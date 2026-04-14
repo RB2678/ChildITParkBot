@@ -11,6 +11,7 @@ class Database:
         self.data = {"users": {}}
         self.load_db()
 
+
     def load_db(self):
         """Загрузка данных с проверкой бэкапа"""
         if self._try_load(self.path):
@@ -25,6 +26,7 @@ class Database:
         self.data = {"users": {}}
         self.save_db()
 
+
     def _try_load(self, path: Path) -> bool:
         if path.exists() and path.stat().st_size > 0:
             try:
@@ -33,6 +35,7 @@ class Database:
             except Exception as e:
                 logging.error(f"Ошибка загрузки {path.name}: {e}")
         return False
+
 
     def save_db(self):
         """Атомарное сохранение (сначала в темп, потом замена)"""
@@ -52,8 +55,8 @@ class Database:
                 temp_path.unlink()
             logging.error(f"Ошибка сохранения БД: {e}")
 
-    # --- Методы для удобства ---
 
+    # --- Методы для удобства ---
     def get_user(self, user_id):
         """Возвращает данные пользователя, а если его нет в БД - то создает"""
         user_id = str(user_id)
@@ -66,6 +69,20 @@ class Database:
             }
             self.save_db()
         return self.data["users"][user_id]
+
+
+    def get_users_by_role(self, role):
+        """Возвращает список пользователей с заданной ролью"""
+        users_by_role = {}
+
+        for user_id in self.data["users"]:
+            user = self.data["users"][user_id]
+
+            if user.get("role") == role:
+                users_by_role[user_id] = user
+
+        return users_by_role
+
 
     def update_user(self, user_id, **kwargs):
         """Обновляет поля пользователя и сразу сохраняет"""
