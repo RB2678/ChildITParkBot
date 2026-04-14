@@ -20,6 +20,7 @@ class BotStates(StatesGroup):
     entering_admin_name = State()
     processing_broadcast = State()
     confirming_broadcast = State()
+    broadcast_text = State()
 
     # Состояния для преподавателей
     entering_teacher_name = State()
