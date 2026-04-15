@@ -89,3 +89,14 @@ class Database:
         user = self.get_user(user_id)
         user.update(kwargs)
         self.save_db()
+
+    def save_debtors(self, user_id, debtors):
+        """Сохраняет список должников в БД"""
+        if "debtors_cache" not in self.data:
+            self.data["debtors_cache"] = {}
+        self.data["debtors_cache"][str(user_id)] = debtors
+        self.save_db()
+
+    def get_debtors(self, user_id):
+        """Возвращает список должников из БД"""
+        return self.data.get("debtors_cache", {}).get(str(user_id), None)
