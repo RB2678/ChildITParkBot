@@ -1,5 +1,4 @@
 import logging
-
 from telebot import types
 from states.states import BotStates
 from utils import safe_send, get_contact_keyboard, format_phone
