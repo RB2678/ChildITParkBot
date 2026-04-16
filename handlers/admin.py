@@ -7,24 +7,15 @@ BROADCAST_ROLES = ['admin', 'student', 'parent', 'teacher']
 
 def register_admin_handlers(bot, db, crm):
     # ----- Админ-панель -----
-    def send_admin_menu(user_id):
-        safe_send(
-            bot,
-            user_id,
-            f"Добро пожаловать в панель управления",
-            reply_markup=admin_menu_kb()
-        )
-
-
     @bot.message_handler(commands=["admin", "start"], role="admin")
     def admin_start_msg(message: types.Message):
-        send_admin_menu(message.chat.id)
+        send_admin_menu(bot, message.chat.id)
 
 
     @bot.callback_query_handler(func=lambda call: call.data == "to_menu", role="admin")
     def admin_start_call(call: types.CallbackQuery):
         bot.answer_callback_query(call.id)
-        send_admin_menu(call.message.chat.id)
+        send_admin_menu(bot, call.message.chat.id)
 
 
     # ----- Рассылка -----
@@ -138,7 +129,7 @@ def register_admin_handlers(bot, db, crm):
         user_id = call.message.chat.id
         bot.delete_state(user_id, call.message.chat.id)
         safe_send(bot, user_id, "Рассылка отменена")
-        send_admin_menu(user_id)
+        send_admin_menu(bot, user_id)
         bot.answer_callback_query(call.id)
 
 
@@ -202,3 +193,11 @@ def register_admin_handlers(bot, db, crm):
                      f"Задолженность: {debt}\n\n")
 
         return text, total_pages
+
+def send_admin_menu(bot, user_id):
+    safe_send(
+        bot,
+        user_id,
+        f"Добро пожаловать в панель управления",
+        reply_markup=admin_menu_kb()
+    )
