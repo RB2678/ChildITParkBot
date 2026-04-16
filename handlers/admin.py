@@ -154,7 +154,7 @@ def register_admin_handlers(bot, db, crm):
             safe_send(bot, user_id, "Должников не найдено", reply_markup=to_menu_kb())
             return
 
-        text = "Список должников:\n\n"
+        db.save_debtors(user_id, debtors)
 
         for debtor in debtors:
             debt = debtor.get("balance").strip('-')
