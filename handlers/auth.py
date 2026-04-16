@@ -1,6 +1,7 @@
 import logging
 from states.states import BotStates
 from utils import safe_send
+from handlers.admin import send_admin_menu
 
 # Конфигурация специфики ролей
 REG_CONFIG = {
@@ -72,4 +73,10 @@ def crm_registration(message, bot, db, crm, role_settings):
     db.update_user(user_id, name=full_name, crm_id=crm_obj.get("id"), is_verified=True)
 
     safe_send(bot, user_id, f"✅ Доступ разрешен. Роль: {role_settings['label']}.")
+
+    match role_settings['label']:
+        case 'Администратор':
+            send_admin_menu(bot, user_id)
+
+
     bot.delete_state(user_id, message.chat.id)
