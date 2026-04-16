@@ -63,7 +63,6 @@ def register_base_handlers(bot, db):
 
         if check_password(pending_role, message.text):
             db.update_user(user_id, role=pending_role, pending_role=None)
-            safe_send(bot, user_id, f"✅ Доступ разрешен. Роль {pending_role} активирована.")
 
             match pending_role:
                 case "admin":
