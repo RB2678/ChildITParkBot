@@ -133,7 +133,6 @@ def register_admin_handlers(bot, db, crm):
         bot.answer_callback_query(call.id)
 
 
-
     @bot.callback_query_handler(func=lambda call: call.data == "cancel_broadcast", role="admin")
     def cancel_broadcast(call):
         user_id = call.message.chat.id
@@ -156,27 +155,27 @@ def register_admin_handlers(bot, db, crm):
 
         db.save_debtors(user_id, debtors)
 
-        for debtor in debtors:
-            debt = debtor.get("balance").strip('-')
-            text += (f"Клиент: {debtor.get('legal_name')}\n"
-                     f"Ученик: {debtor.get('name')}\n"
-                     f"Задолженность: {debt}\n\n")
+        text, total_pages = get_debtors_page_content(debtors)
+        safe_send(bot, user_id, text, reply_markup=debtors_pagination_kb(0, total_pages))
 
-        safe_send(bot, user_id, text, reply_markup=debtors_pagination_kb(1))
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("to_page_"), role="admin")
     def change_page(call):
-        page = int(call.data.split("_")[2])
         bot.answer_callback_query(call.id)
         user_id = call.message.chat.id
-        page_content = {}
-        text = page
-        safe_edit(
-            bot=bot,
-            chat_id=user_id,
-            message_id=call.message.message_id,
-            text=text,
-            reply_markup=debtors_pagination_kb(page)
+        page = int(call.data.split("_")[2])
+        debtors = db.get_debtors(user_id)
+
+        if not debtors:
+            return
+
+        page_content, total_pages = get_debtors_page_content(debtors, page)
+
+        safe_edit(bot=bot,
+                  chat_id=user_id,
+                  message_id=call.message.message_id,
+                  text= page_content,
+                  reply_markup=debtors_pagination_kb(current_page=page, total_pages=total_pages)
         )
 
 
