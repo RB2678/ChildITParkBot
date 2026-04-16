@@ -178,3 +178,28 @@ def register_admin_handlers(bot, db, crm):
             text=text,
             reply_markup=debtors_pagination_kb(page)
         )
+
+
+    def get_debtors_page_content(debtors, page = 0, size = 5):
+        """
+        Вспомогательная функция для получения одной страницы должников
+        text: содержимое заданной страницы
+        total_pages: общее количество страниц
+        """
+        start = page * size
+        end = start + size
+        subset = debtors[start:end]
+        total_pages = (len(debtors) + size - 1) // size
+
+        if not subset:
+            return "Данных больше нет", 0
+
+        text = f"Список должников (стр. {page+1}/{total_pages}):\n\n"
+
+        for debtor in subset:
+            debt = str(debtor.get("balance")).strip('-')
+            text += (f"Клиент: {debtor.get('legal_name')}\n"
+                     f"Ученик: {debtor.get('name')}\n"
+                     f"Задолженность: {debt}\n\n")
+
+        return text, total_pages
