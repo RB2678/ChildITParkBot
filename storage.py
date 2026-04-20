@@ -106,3 +106,16 @@ class Database:
     def get_debtors(self, user_id):
         """Возвращает список должников из БД"""
         return self.data.get("debtors_cache", {}).get(str(user_id), None)
+
+    def update_teachers_groups(self, user_id, groups):
+        """Сохраняет список групп преподавателя в БД"""
+        if "groups_cache" not in self.data:
+            self.data["groups_cache"] = {}
+        if groups:
+            self.data["groups_cache"][str(user_id)] = groups
+        self.save_db()
+
+    def get_teachers_groups(self, user_id):
+        """Возвращает список групп преподавателя из БД"""
+        return self.data.get("groups_cache", {}).get(str(user_id), None)
+
