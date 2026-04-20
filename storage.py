@@ -70,6 +70,12 @@ class Database:
             self.save_db()
         return self.data["users"][user_id]
 
+    def get_crm_id(self, user_id):
+        """Возвращает id пользователя в AlfaCRM"""
+        user_id = str(user_id)
+        if user_id not in self.data["users"]:
+            return None
+        return self.data["users"][user_id].get("crm_id", None)
 
     def get_users_by_role(self, role):
         """Возвращает список пользователей с заданной ролью"""
