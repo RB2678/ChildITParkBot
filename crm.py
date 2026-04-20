@@ -1,7 +1,6 @@
 import time
 import requests
 import logging
-import os
 from config import CRM_HOSTNAME, CRM_EMAIL, CRM_API_TOKEN
 logging.basicConfig(level=logging.INFO)
 
@@ -51,6 +50,7 @@ class AlfaCRMClient:
         self.ensure_token()
 
         url = f"https://{self.hostname}{path}"
+
         headers = {
             "X-ALFACRM-TOKEN": self.token,
             "Accept": "application/json"
@@ -166,6 +166,32 @@ class AlfaCRMClient:
             "teacher/index",
             self.map_filters(filters)
         )
+
+
+    def get_teachers_groups(self, teacher_id: int):
+        """
+        Получает список активных групп преподавателя
+        :param teacher_id: id преподавателя в AlfaCRM
+        :return: json словарь со списком групп преподавателя или пустой список
+        """
+        try:
+            payload = {"teacher_id": teacher_id}
+
+            response = self.request(
+                method="POST",
+                path=f"/v2api/{self.branch}/group/index",
+                payload=payload
+            )
+
+
+            if response and "items" in response:
+                return [{"id": group['id'], "name": group["name"]} for group in response["items"]]
+
+            return []
+        except requests.exceptions.ConnectionError as e:
+            logging.error(e)
+            return []
+
 
     def create_customer(self, student_name: str, parent_name: str, phone: str, legal_type: str):
         """ Создает нового клиента в AlfaCRM """
