@@ -198,6 +198,6 @@ def send_admin_menu(bot, user_id):
     safe_send(
         bot,
         user_id,
-        f"Добро пожаловать в панель управления",
+        f"Добро пожаловать в панель управления администратора",
         reply_markup=admin_menu_kb()
     )
