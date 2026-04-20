@@ -2,6 +2,7 @@ import logging
 from states.states import BotStates
 from utils import safe_send
 from handlers.admin import send_admin_menu
+from handlers.teacher import send_teacher_menu
 
 # Конфигурация специфики ролей
 REG_CONFIG = {
@@ -70,13 +71,23 @@ def crm_registration(message, bot, db, crm, role_settings):
 
     # Успешная регистрация
     crm_obj = results[0]
-    db.update_user(user_id, name=full_name, crm_id=crm_obj.get("id"), is_verified=True)
+    crm_id = crm_obj.get("id")
+    db.update_user(user_id, name=full_name, crm_id=crm_id, is_verified=True)
 
     safe_send(bot, user_id, f"✅ Доступ разрешен. Роль: {role_settings['label']}.")
 
     match role_settings['label']:
         case 'Администратор':
             send_admin_menu(bot, user_id)
+        case 'Преподаватель':
+            send_teacher_menu(bot, user_id)
+            groups = crm.get_teacher_groups(crm_id)
+            db.update_teachers_groups(user_id, groups)
+
+            if groups:
+                safe_send(bot, user_id, f"📚 Синхронизировано групп: {len(groups)}")
+            else:
+                safe_send(bot, user_id, "⚠️ У вас пока нет активных групп в системе.")
 
 
     bot.delete_state(user_id, message.chat.id)
