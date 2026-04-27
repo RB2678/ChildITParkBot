@@ -190,7 +190,7 @@ class AlfaCRMClient:
             return []
         except requests.exceptions.ConnectionError as e:
             logging.error(e)
-            return []
+            return None
 
 
     def create_customer(self, student_name: str, parent_name: str, phone: str, legal_type: str):
@@ -226,3 +226,7 @@ class AlfaCRMClient:
         except Exception as e:
             logging.error(f"Критическая ошибка при создании клиента: {e}")
             raise e
+
+crm = AlfaCRMClient(CRM_HOSTNAME, CRM_EMAIL, CRM_API_TOKEN)
+
+#print(crm.get_teacher_groups(293))
