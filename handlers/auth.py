@@ -81,7 +81,7 @@ def crm_registration(message, bot, db, crm, role_settings):
             send_admin_menu(bot, user_id)
         case 'Преподаватель':
             send_teacher_menu(bot, user_id)
-            groups = crm.get_teacher_groups(crm_id)
+            groups = crm.get_teachers_groups(crm_id)
             db.update_teachers_groups(user_id, groups)
 
             if groups:
