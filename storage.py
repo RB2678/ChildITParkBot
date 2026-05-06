@@ -51,9 +51,15 @@ class Database:
             """)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS group_students_cache (
-                    group_id TEXT,
+                    group_id TEXT PRIMARY KEY,
                     students_json TEXT,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS attendance_cache (
+                    user_id TEXT PRIMARY KEY,
+                    data TEXT
                 )
             """)
             conn.commit()
@@ -223,11 +229,47 @@ class Database:
 
             return json.loads(row["students_json"]) if row else None
 
-    def clear_group_students_cache(self, group_id=None):
+    def clear_group_students_cache(self, group_id = None):
         """Очистка кэша для одной группы или для всех сразу"""
         with self._get_connection() as conn:
             if group_id:
                 conn.execute("""DELETE FROM groups_students_cache WHERE group_id = ?""", (str(group_id),))
             else:
                 conn.execute("DELETE FROM groups_students_cache")
+            conn.commit()
+
+
+    def get_attendance_cache(self, user_id):
+        """Возвращает кэш посещаемости преподавателя"""
+        user_id = str(user_id)
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT data FROM attendance_cache WHERE user_id = ?",
+                (str(user_id),)
+            ).fetchone()
+
+            return json.loads(row["data"]) if row else None
+
+    def save_attendance_cache(self, user_id, data):
+        """Сохраняет кэш посещаемости"""
+        if data is None: return
+
+        user_id = str(user_id)
+        data = json.dumps(data, ensure_ascii=False)
+
+        with self._get_connection() as conn:
+            conn.execute("""
+                INSERT OR REPLACE INTO attendance_cache (user_id, data) 
+                VALUES (?, ?)
+            """, (user_id, data))
+            conn.commit()
+
+
+    def clear_attendance_cache(self, user_id = None):
+        """Очистка кэша посещаемости для одного преподавателя или для всех сразу"""
+        with self._get_connection() as conn:
+            if user_id:
+                conn.execute("""DELETE FROM attendance_cache WHERE user_id = ?""", (str(user_id),))
+            else:
+                conn.execute("DELETE FROM attendance_cache")
             conn.commit()
