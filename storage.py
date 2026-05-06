@@ -1,121 +1,233 @@
+import sqlite3
 import json
-import logging
-import shutil
 from pathlib import Path
 from config import DB_PATH
 
 class Database:
     def __init__(self):
         self.path = Path(DB_PATH)
-        self.bak_path = self.path.with_suffix(".json.bak")
-        self.data = {"users": {}}
-        self.load_db()
+        self._init_db()
+
+    def _get_connection(self):
+        """Создает новое подключение к БД"""
+        conn = sqlite3.connect(self.path, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    def _init_db(self):
+        """Создание таблиц, если они не существуют"""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            # Таблица пользователей
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id TEXT PRIMARY KEY,
+                    role TEXT,
+                    phone TEXT,
+                    state TEXT,
+                    crm_id INTEGER,
+                    data TEXT       -- метаданные
+                )
+            """)
+            # Таблицы для кэшей
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS debtors_cache (
+                    user_id TEXT PRIMARY KEY, 
+                    data TEXT
+                )
+            """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS groups_cache (
+                    user_id TEXT PRIMARY KEY, 
+                    data TEXT
+                )
+            """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS customers_cache (
+                    customer_id TEXT PRIMARY KEY,  
+                    name TEXT,
+                    data TEXT
+                )
+            """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS group_students_cache (
+                    group_id TEXT,
+                    students_json TEXT,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+            conn.commit()
 
 
-    def load_db(self):
-        """Загрузка данных с проверкой бэкапа"""
-        if self._try_load(self.path):
-            return
-
-        logging.warning(f"Основной файл {self.path.name} поврежден, пробуем бэкап...")
-        if self._try_load(self.bak_path):
-            logging.info("Данные восстановлены из .bak")
-            return
-
-        logging.error("Не удалось прочитать данные. Создаем пустую базу.")
-        self.data = {"users": {}}
-        self.save_db()
-
-
-    def _try_load(self, path: Path) -> bool:
-        if path.exists() and path.stat().st_size > 0:
-            try:
-                self.data = json.loads(path.read_text(encoding="utf-8"))
-                return True
-            except Exception as e:
-                logging.error(f"Ошибка загрузки {path.name}: {e}")
-        return False
-
-
-    def save_db(self):
-        """Атомарное сохранение (сначала в темп, потом замена)"""
-        temp_path = self.path.with_suffix(".tmp")
-        try:
-            with open(temp_path, "w", encoding="utf-8") as f:
-                json.dump(self.data, f, ensure_ascii=False, indent=4)
-
-            # Если основной файл есть, делаем его бэкапом
-            if self.path.exists():
-                shutil.copy2(self.path, self.bak_path)
-
-            # Заменяем основной файл временным
-            temp_path.replace(self.path)
-        except Exception as e:
-            if temp_path.exists():
-                temp_path.unlink()
-            logging.error(f"Ошибка сохранения БД: {e}")
-
-
-    # --- Методы для удобства ---
+    # --- Основные методы ---
     def get_user(self, user_id):
         """Возвращает данные пользователя, а если его нет в БД - то создает"""
         user_id = str(user_id)
-        if user_id not in self.data["users"]:
-            self.data["users"][user_id] = {
-                "role": None,
-                "phone": None,
-                "state": None,
-                "data": {}
-            }
-            self.save_db()
-        return self.data["users"][user_id]
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            row = cursor.execute("SELECT * FROM users WHERE user_id = ?", (str(user_id),)).fetchone()
+
+            if row:
+                user_dict = dict(row)
+                user_dict["data"] = json.loads(user_dict["data"]) if user_dict["data"] else {}
+                return user_dict
+
+            default_data = json.dumps({})
+            cursor.execute(
+                "INSERT INTO users (user_id, role, phone, state, data) VALUES (?, ?, ?, ?, ?)",
+                (user_id, None, None, None, default_data)
+            )
+            conn.commit()
+            return {"user_id": user_id, "role": None, "phone": None, "state": None, "crm_id": None, "data": default_data}
+
+
+    def update_user(self, user_id, **kwargs):
+        """Обновляет поля пользователя"""
+        user_id = str(user_id)
+        current_user = self.get_user(user_id)
+
+        user_metadata = current_user.get("data")
+        if not isinstance(user_metadata, dict):
+            user_metadata = {}
+
+        main_columns = ["role", "phone", "state", "crm_id"]
+
+        # Списки для формирования динамического SQL
+        set_parts = []
+        params = []
+
+        for key, value in kwargs.items():
+            if key in main_columns:
+                set_parts.append(f"{key} = ?")
+                params.append(value)
+            else:
+                user_metadata[key] = value
+
+        set_parts.append("data = ?")
+        params.append(json.dumps(user_metadata, ensure_ascii=False))
+
+        params.append(user_id)
+
+        query = f"UPDATE users SET {', '.join(set_parts)} WHERE user_id = ?"
+
+        with self._get_connection() as conn:
+            conn.execute(query, params)
+            conn.commit()
+
 
     def get_crm_id(self, user_id):
         """Возвращает id пользователя в AlfaCRM"""
         user_id = str(user_id)
-        if user_id not in self.data["users"]:
-            return None
-        return self.data["users"][user_id].get("crm_id", None)
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT crm_id FROM users WHERE user_id = ?", (str(user_id),)).fetchone()
+            return row["crm_id"] if row else None
 
     def get_users_by_role(self, role):
         """Возвращает список пользователей с заданной ролью"""
-        users_by_role = {}
+        with self._get_connection() as conn:
+            rows = conn.execute("SELECT * FROM users WHERE role = ?", (role,)).fetchall()
+            result = {}
+            for row in rows:
+                d = dict(row)
+                d["data"] = json.loads(d["data"]) if d["data"] else {}
+                result[d["user_id"]] = d
+            return result
 
-        for user_id in self.data["users"]:
-            user = self.data["users"][user_id]
 
-            if user.get("role") == role:
-                users_by_role[user_id] = user
-
-        return users_by_role
-
-
-    def update_user(self, user_id, **kwargs):
-        """Обновляет поля пользователя и сразу сохраняет"""
-        user = self.get_user(user_id)
-        user.update(kwargs)
-        self.save_db()
-
+    # --- Методы кэширования ---
     def save_debtors(self, user_id, debtors):
         """Сохраняет список должников в БД"""
-        if "debtors_cache" not in self.data:
-            self.data["debtors_cache"] = {}
-        self.data["debtors_cache"][str(user_id)] = debtors
-        self.save_db()
+        with self._get_connection() as conn:
+            conn.execute("INSERT OR REPLACE INTO debtors_cache (user_id, data) VALUES (?, ?)",
+                         (str(user_id), json.dumps(debtors, ensure_ascii=False))
+            )
+            conn.commit()
+
 
     def get_debtors(self, user_id):
         """Возвращает список должников из БД"""
-        return self.data.get("debtors_cache", {}).get(str(user_id), None)
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT data FROM debtors_cache WHERE user_id = ?", (str(user_id),)).fetchone()
+            return json.loads(row["data"]) if row else None
+
 
     def update_teachers_groups(self, user_id, groups):
         """Сохраняет список групп преподавателя в БД"""
-        if "groups_cache" not in self.data:
-            self.data["groups_cache"] = {}
-        if groups:
-            self.data["groups_cache"][str(user_id)] = groups
-        self.save_db()
+        if groups is None: return
+        with self._get_connection() as conn:
+            conn.execute(
+                "INSERT OR REPLACE INTO groups_cache (user_id, data) VALUES (?, ?)",
+                (str(user_id), json.dumps(groups, ensure_ascii=False))
+            )
+            conn.commit()
+
 
     def get_teachers_groups(self, user_id):
         """Возвращает список групп преподавателя из БД"""
-        return self.data.get("groups_cache", {}).get(str(user_id), None)
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT data FROM groups_cache WHERE user_id = ?", (str(user_id),)).fetchone()
+            return json.loads(row["data"]) if row else None
 
+    def update_customers_cache(self, customers_list):
+        """Сохраняет словарь клиентов {id: name} в БД"""
+        if not customers_list: return
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+
+            for customer in customers_list:
+                c_id = str(customer.get("id"))
+                name = customer.get("name", "Неизвестно")
+                data = json.dumps(customer, ensure_ascii=False)
+                cursor.execute(
+                    "INSERT OR REPLACE INTO customers_cache (customer_id, name, data) VALUES (?, ?, ?)",
+                    (str(c_id), name, data)
+                )
+            conn.commit()
+
+    def get_cached_customer_name(self, customer_id: int):
+        """Возвращает имя клиента по ID из кэша"""
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT name FROM customers_cache WHERE customer_id = ?", (str(customer_id),)).fetchone()
+            return row["name"] if row else None
+
+
+    def save_group_students(self, group_id, students):
+        """
+        Сохраняет список учеников конкретной группы
+        :param group_id: ID группы из AlfaCRM
+        :param students: список словарей [{id: int, name: str}]
+        """
+        if students is None: return
+
+        group_id = str(group_id)
+        students_json = json.dumps(students, ensure_ascii=False)
+
+        with self._get_connection() as conn:
+            conn.execute("""
+                INSERT OR REPLACE INTO groups_students_cache (group_id, students_json, updated_at) 
+                VALUES (?, ?, CURRENT_TIMESTAMP)
+            """, (group_id, students_json))
+            conn.commit()
+
+
+    def get_group_students(self, group_id):
+        """Возвращает список ученик группы из кэша"""
+        group_id = str(group_id)
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT students_json FROM groups_students_cache WHERE group_id = ?",
+                (group_id,)
+            ).fetchone()
+
+            return json.loads(row["students_json"]) if row else None
+
+    def clear_group_students_cache(self, group_id=None):
+        """Очистка кэша для одной группы или для всех сразу"""
+        with self._get_connection() as conn:
+            if group_id:
+                conn.execute("""DELETE FROM groups_students_cache WHERE group_id = ?""", (str(group_id),))
+            else:
+                conn.execute("DELETE FROM groups_students_cache")
+            conn.commit()
