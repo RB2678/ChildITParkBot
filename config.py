@@ -13,6 +13,6 @@ ADMIN_PW_DIGEST = os.getenv("ADMIN_PASSWORD")
 TEACHER_PW_DIGEST = os.getenv("TEACHER_PASSWORD")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "db.json")
+DB_PATH = os.path.join(BASE_DIR, "users.db")
 
 PRIVACY_POLITIC_URL = os.getenv("PRIVACY_POLITIC_URL")
