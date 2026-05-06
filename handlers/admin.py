@@ -14,25 +14,24 @@ def register_admin_handlers(bot, db, crm):
 
     @bot.callback_query_handler(func=lambda call: call.data == "to_menu", role="admin")
     def admin_start_call(call: types.CallbackQuery):
-        bot.answer_callback_query(call.id)
         send_admin_menu(bot, call.message.chat.id)
+        bot.answer_callback_query(call.id)
 
 
     # ----- Рассылка -----
     @bot.callback_query_handler(func=lambda call: call.data == "start_broadcast", role="admin")
     def start_broadcast(call):
-        bot.answer_callback_query(call.id)
         user_id = call.message.chat.id
         safe_edit(bot=bot, chat_id=user_id, message_id=call.message.message_id,
                   text="Выберите для кого запустить рассылку:", reply_markup=broadcast_roles_kb()
         )
         bot.set_state(user_id, BotStates.broadcast_text, user_id)
+        bot.answer_callback_query(call.id)
 
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("bc_role:"), role="admin",
                                 state=BotStates.broadcast_text)
     def choosing_roles_broadcast(call):
-        bot.answer_callback_query(call.id)
         user_id = call.message.chat.id
         msg_id = call.message.message_id
         target_role = ""
@@ -64,17 +63,18 @@ def register_admin_handlers(bot, db, crm):
             call.message.chat.id
         )
         bot.add_data(user_id=user_id, chat_id=call.message.chat.id, target_role=target_role)
+        bot.answer_callback_query(call.id)
 
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("back_to_menu"), role="admin")
     def back_to_menu(call):
         chat_id = call.message.chat.id
-        bot.answer_callback_query(call.id)
         bot.delete_state(user_id=chat_id, chat_id=chat_id)
         safe_edit(bot=bot, chat_id=chat_id, message_id=call.message.message_id,
                   text=f"Добро пожаловать в панель управления",
                   reply_markup=admin_menu_kb()
         )
+        bot.answer_callback_query(call.id)
 
 
     @bot.message_handler(content_types=["text"], role="admin", state=BotStates.processing_broadcast)
@@ -136,7 +136,6 @@ def register_admin_handlers(bot, db, crm):
     # ----- Поиск должников -----
     @bot.callback_query_handler(func=lambda call: call.data == "find_debtors", role="admin")
     def find_debtors(call):
-        bot.answer_callback_query(call.id)
         user_id = call.message.chat.id
         debtors=crm.customers(lesson_count_to=-1)
 
@@ -148,11 +147,11 @@ def register_admin_handlers(bot, db, crm):
 
         text, total_pages = get_debtors_page_content(debtors)
         safe_send(bot, user_id, text, reply_markup=debtors_pagination_kb(0, total_pages))
+        bot.answer_callback_query(call.id)
 
 
     @bot.callback_query_handler(func=lambda call: call.data.startswith("to_page_"), role="admin")
     def change_page(call):
-        bot.answer_callback_query(call.id)
         user_id = call.message.chat.id
         page = int(call.data.split("_")[2])
         debtors = db.get_debtors(user_id)
@@ -168,6 +167,7 @@ def register_admin_handlers(bot, db, crm):
                   text= page_content,
                   reply_markup=debtors_pagination_kb(current_page=page, total_pages=total_pages)
         )
+        bot.answer_callback_query(call.id)
 
 
     def get_debtors_page_content(debtors, page = 0, size = 5):
