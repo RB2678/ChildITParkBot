@@ -192,6 +192,37 @@ class AlfaCRMClient:
             logging.error(e)
             return None
 
+    def get_lessons(self, **filters):
+        return self.list_all(
+            "lesson/index",
+            self.map_filters(filters)
+        )
+
+    def get_regular_lessons(self, **filters):
+        return self.list_all(
+            "regular-lesson/index",
+            self.map_filters(filters)
+        )
+
+
+    def update_attendance(self, lesson_id: int, details: list):
+        try:
+            for detail in details:
+                if "branch_id" not in detail:
+                    detail["branch_id"] = self.branch
+
+            path = f"/v2api/{self.branch}/lesson/teach?id={lesson_id}"
+            payload = {
+                "status": 3,
+                "branch_id": self.branch,
+                "details": details
+            }
+            response = self.request(method="POST", path = path, payload = payload)
+            return True
+        except Exception as e:
+            logging.error(f"CRM update failed: {e}")
+            return False
+
 
     def create_customer(self, student_name: str, parent_name: str, phone: str, legal_type: str):
         """ Создает нового клиента в AlfaCRM """
