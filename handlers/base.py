@@ -58,7 +58,7 @@ def register_base_handlers(bot, db):
     @bot.message_handler(state=BotStates.entering_password)
     def process_password(message):
         user_id = message.chat.id
-        user_data = db.get_user(user_id)
+        user_data = db.get_user(user_id).get("data")
         pending_role = user_data.get("pending_role")  # Берем роль, которую юзер хотел занять
 
         if check_password(pending_role, message.text):
@@ -76,7 +76,6 @@ def register_base_handlers(bot, db):
             safe_send(bot, user_id, "Введите свое ФИО:")
         else:
             safe_send(bot, user_id, "❌ Неверный пароль. Попробуйте еще раз или выберите роль на кнопках:")
-            # Можно вернуть его к выбору ролей
             cmd_start(message)
 
 
