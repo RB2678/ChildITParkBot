@@ -258,6 +258,33 @@ class AlfaCRMClient:
             logging.error(f"Критическая ошибка при создании клиента: {e}")
             raise e
 
-crm = AlfaCRMClient(CRM_HOSTNAME, CRM_EMAIL, CRM_API_TOKEN)
+    def get_teacher_schedule(self, teacher_id: int, date_from: str, date_to: str):
+        """
+        Возвращает уроки преподавателя за период. Формат дат: YYYY-MM-DD
+        :param teacher_id: id преподавателя в AlfaCRM
+        :param date_from: нижняя граница диапазона дат
+        :param date_to: верхняя граница диапазона дат
+        :return: список уроков преподавателя в заданный период
+        """
+        try:
+            payload = {
+                "teacher_id": teacher_id,
+                "date_from": date_from,
+                "date_to": date_to
+            }
 
-#print(crm.get_teacher_groups(293))
+            response=self.request(
+                method="POST",
+                path=f"/v2api/{self.branch}/regular-lesson/index",
+                payload=payload
+            )
+
+            return response.get("items",[]) if response else []
+        except requests.exceptions.ConnectionError as e:
+            logging.error(f"Ошибка подключения к CRM: {e}")
+            return None
+        except Exception as e:
+            logging.error(f"CRM Schedule Error: {e}")
+            return None
+
+# crm = AlfaCRMClient(hostname=CRM_HOSTNAME, email=CRM_EMAIL, api_key=CRM_API_TOKEN)
