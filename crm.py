@@ -205,16 +205,13 @@ class AlfaCRMClient:
         )
 
 
-    def update_attendance(self, lesson_id: int, details: list):
+    def update_attendance(self, lesson_id: int, details: list, note):
         try:
-            for detail in details:
-                if "branch_id" not in detail:
-                    detail["branch_id"] = self.branch
-
             path = f"/v2api/{self.branch}/lesson/teach?id={lesson_id}"
             payload = {
                 "status": 3,
                 "branch_id": self.branch,
+                "note": note,
                 "details": details
             }
             response = self.request(method="POST", path = path, payload = payload)
