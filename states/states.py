@@ -24,6 +24,7 @@ class BotStates(StatesGroup):
 
     # Состояния для преподавателей
     entering_teacher_name = State()
+    entering_lesson_note = State()
 
     # Состояния для CRM/Договоров
     waiting_contract = State()      # Ожидание подписания договора
