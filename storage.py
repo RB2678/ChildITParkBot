@@ -81,7 +81,7 @@ class Database:
 
             default_data = json.dumps({})
             cursor.execute(
-                "INSERT INTO users (user_id, role, phone, state, data) VALUES (?, ?, ?, ?, ?)",
+                f"INSERT INTO users (user_id, role, phone, state, data) VALUES (?, ?, ?, ?, ?)",
                 (user_id, None, None, None, default_data)
             )
             conn.commit()
