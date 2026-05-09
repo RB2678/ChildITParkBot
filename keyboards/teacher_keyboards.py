@@ -58,3 +58,10 @@ def attendance_kb(students_dict):
         InlineKeyboardButton(text="Назад", callback_data="to_schedule_kb")
     )
     return keyboard
+
+
+def skip_note_kb():
+    keyboard = InlineKeyboardMarkup(row_width=1)
+    keyboard.add(InlineKeyboardButton(text="Пропустить", callback_data="skip_note"))
+    keyboard.add(InlineKeyboardButton(text="Назад", callback_data="to_attendance_kb"))
+    return keyboard
