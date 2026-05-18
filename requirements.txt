@@ -2,3 +2,4 @@ requests
 pytelegrambotapi
 python-dotenv
 telebot
+pdf
